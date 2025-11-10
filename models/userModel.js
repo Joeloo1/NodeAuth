@@ -60,13 +60,16 @@ userSchema.methods.correctPassword = async function (
 };
 
 // CHECK IF USER CHANGED PASSWORD AFTER THE TOKEN WAS ISSUED
-userSchema.methods.changedPasswordAfter = function (next) {
+userSchema.methods.changedPasswordAfter = function (jwtTimeStamp) {
   if (this.passwordChangedAt) {
     const changedTimestamp = parseInt(
       this.passwordChangedAt.getTime() / 1000,
       10
     );
+    return jwtTimeStamp < changedTimestamp
   }
+  // false means NOT changed 
+  return false 
 };
 
 // Generate a random token 
