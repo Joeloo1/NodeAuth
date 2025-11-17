@@ -1,3 +1,13 @@
+const AppError = require('./../utils/appError')
+
+const handleJWTError = () => {
+    return new AppError('Invalid token, Please login again', 401)
+}
+
+const handleJWTExpiredError = () => {
+    return new AppError('Your token has expire. Please login agaiin', 401);
+}
+
 const sendDev = (err, res) => {
     res.status(err.statusCode).json({
             status: err.status,
@@ -33,6 +43,10 @@ module.exports = (err, req, res, next) => {
      if (process.env.NODE_ENV === 'devlopment') {
        sendDev(err, res)
      } else if (process.env.NODE_ENV === 'production') {
-        sendProd(err, res)
+        let error = {...err}
+
+        if (error.code === 'jsonWebTokenError') error = handleJWTError()
+        if (error.code === 'TokenExpiredError') error = handleJWTExpiredError()
+        sendProd(error, res)
      }
 }
