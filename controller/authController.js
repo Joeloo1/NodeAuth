@@ -11,6 +11,8 @@ const signToken = (id) => {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
+
+
 const createSignToken = (user, statusCode, res) => {
   const token = signToken(user._id);
   res.status(statusCode).json({
@@ -32,6 +34,8 @@ exports.signup = catchAsync(async (req, res, next) => {
   });
   createSignToken(newUser, 201, res);
 });
+
+
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   // CHECK IS EMAIL AND PASSWORD EXIST
@@ -47,6 +51,8 @@ exports.login = catchAsync(async (req, res, next) => {
   // SERVER TOKEN
   createSignToken(user, 200, res);
 });
+
+
 //  PROTECT ROUTE
 exports.protect = catchAsync(async (req, res, next) => {
   // GET THE TOKEN AND CHECK IF IT THERE
@@ -160,4 +166,20 @@ exports.resetPassword = catchAsync(async (req, res, next ) => {
   await user.save()
 
  createSignToken(user._id, 200, res);
+})
+
+// Update password 
+exports.updatePassword = catchAsync( async (req, res, next) => {
+  // Get user from collection
+  const user = await  User.findById(req.user.id).select('+password');
+  //  check if posted  password is correct 
+  if (!(await user.correctPassword(req.boby.passwordCurrent, user.password))) {
+    return next(new AppError('Your current password is wrong', 401))
+  }
+  // if so, update password
+  user.password = req.bosy.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
+  // log user in, and send JWT
+  createSignToken(user, 200, res);
 })
