@@ -2,6 +2,7 @@ const crypto = require('crypto')
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
+const { type } = require('os');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -40,6 +41,11 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String, 
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false
+  }
 });
 // HASH USER PASSWORD BEFORE SAVING TO DB
 userSchema.pre('save', async function (next) {
